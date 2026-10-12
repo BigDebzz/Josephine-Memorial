@@ -4,10 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <title>Yearly remembrance messages &middot; Josephine Oghenetega Oberiko</title>
-<meta name="description" content="Each year, the family adds a few words in memory of Deaconess Josephine Oghenetega Oberiko."/>
+<meta name="description" content="Each year, family and friends write a few words in memory of Deaconess Josephine Oghenetega Oberiko."/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="Yearly remembrance messages &middot; Josephine Oghenetega Oberiko"/>
-<meta property="og:description" content="Each year, the family adds a few words in memory of Josephine."/>
+<meta property="og:description" content="Each year, family and friends write a few words in memory of Josephine."/>
 <meta property="og:image" content="https://josephine-memorial.vercel.app/images/photo-01.webp"/>
 <meta name="theme-color" content="#0b0b0d"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -32,16 +32,37 @@ h1 em{font-style:italic;color:var(--gb);}
 .lede{font-size:1.05rem;color:var(--dim);max-width:54ch;}
 .ann{margin-top:1.8rem;font-family:'Fraunces',serif;font-style:italic;font-size:clamp(1.1rem,3.6vw,1.4rem);color:var(--gb);max-width:36ch;line-height:1.4;}
 .ann[hidden]{display:none;}
-.sec{padding:clamp(2rem,6vw,4rem) clamp(1.1rem,4vw,2.6rem) clamp(4rem,10vw,7rem);}
+.sec{padding:clamp(2rem,6vw,4rem) clamp(1.1rem,4vw,2.6rem) clamp(2rem,6vw,3rem);}
+.sec.last{padding-bottom:clamp(4rem,10vw,7rem);}
 .sh{display:flex;align-items:baseline;gap:1.2rem;margin-bottom:clamp(1.5rem,4vw,2.5rem);}
 .sl{font-size:.66rem;letter-spacing:.34em;text-transform:uppercase;color:var(--dim);}
 .sr{flex:1;height:1px;background:var(--line);align-self:center;}
-.rn{border-top:1px solid var(--line);padding:2.2rem 0 .8rem;display:grid;gap:.7rem;}
-@media(min-width:680px){.rn{grid-template-columns:7rem 1fr;gap:3rem;}}
-.rn .ry{font-family:'Fraunces',serif;font-size:1.7rem;color:var(--gold);line-height:1;}
-.rn .wd{margin-top:.7rem;font-family:'Archivo',sans-serif;font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);line-height:1.5;}
-.rn h2{font-family:'Fraunces',serif;font-weight:300;font-size:1.45rem;color:var(--ink);margin-bottom:.7rem;}
-.rn p{color:var(--dim);font-size:1.04rem;max-width:62ch;margin-bottom:1.1rem;white-space:pre-line;}
+h2.hd{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(1.7rem,5vw,2.6rem);line-height:1.1;margin-bottom:1rem;}
+h2.hd em{font-style:italic;color:var(--gb);}
+p.bd{color:var(--dim);max-width:54ch;margin-bottom:1.6rem;}
+
+/* the form */
+.tf{display:grid;gap:1rem;max-width:760px;}
+.tf label{display:block;font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);margin-bottom:.4rem;}
+.tf input,.tf textarea{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:.85rem 1rem;font:inherit;font-size:1rem;font-weight:300;border-radius:2px;}
+.tf textarea{min-height:160px;resize:vertical;line-height:1.6;}
+.tf .row{display:grid;gap:1rem;}
+@media(min-width:640px){.tf .row{grid-template-columns:1fr 1fr;}}
+.tf button{justify-self:start;background:var(--gold);color:#0b0b0d;border:none;padding:.95rem 1.8rem;font:inherit;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;font-weight:500;cursor:pointer;border-radius:2px;}
+.tf button[disabled]{opacity:.6;cursor:default;}
+.tf .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;}
+.tn{font-size:.95rem;color:var(--dim);min-height:1.5rem;}
+.tn.ok{color:var(--gb);}
+
+/* the messages, grouped by year */
+.yr{border-top:1px solid var(--line);padding:2.2rem 0 .4rem;display:grid;gap:.9rem;}
+@media(min-width:680px){.yr{grid-template-columns:7rem 1fr;gap:3rem;}}
+.yr .y{font-family:'Fraunces',serif;font-size:1.7rem;color:var(--gold);line-height:1;}
+.msg{margin-bottom:2rem;}
+.msg h3{font-family:'Fraunces',serif;font-weight:300;font-size:1.35rem;color:var(--ink);margin-bottom:.6rem;}
+.msg p{color:var(--dim);font-size:1.04rem;max-width:62ch;margin-bottom:.9rem;}
+.msg .by{font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);}
+.msg .by b{color:var(--gb);font-weight:400;}
 .empty{border-top:1px solid var(--line);padding:2.2rem 0;color:var(--dim);font-family:'Fraunces',serif;font-style:italic;font-size:1.2rem;max-width:42ch;}
 .back{display:flex;flex-wrap:wrap;gap:1.4rem 2.2rem;margin-top:3rem;padding-top:1.8rem;border-top:1px solid var(--line);font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;}
 .back a{color:var(--gb);text-decoration:none;border-bottom:1px solid var(--gold);padding-bottom:.2rem;}
@@ -64,12 +85,30 @@ footer b{color:var(--gb);font-weight:400;}
     <div class="wrap">
       <p class="ey">Remembered each year</p>
       <h1>Yearly <em>remembrance</em> messages</h1>
-      <p class="lede">Each year, on the 12th of October, the family adds a few words here for Josephine. Her children, and everyone who loved her, can come back and read them.</p>
+      <p class="lede">Each year, on the 12th of October, family and friends write a few words here for Josephine. Her children, and everyone who loved her, can come back and read them.</p>
       <p class="ann" id="ann" hidden></p>
     </div>
   </header>
 
-  <section class="sec">
+  <section class="sec" id="write">
+    <div class="wrap">
+      <div class="sh"><span class="sl">Write a message</span><span class="sr"></span></div>
+      <h2 class="hd">Add your words <em>for this year.</em></h2>
+      <p class="bd">A memory, a prayer, or a few lines for her children to read. Messages appear here after the family has read them, and stay in the year they were written.</p>
+      <form class="tf" id="tf" novalidate>
+        <div class="row">
+          <div><label for="mname">Your name</label><input id="mname" name="name" type="text" maxlength="80" required autocomplete="name"/></div>
+          <div><label for="mrel">How you knew her (optional)</label><input id="mrel" name="relationship" type="text" maxlength="80" placeholder="Daughter, friend, church family..."/></div>
+        </div>
+        <div><label for="mmsg">Your message</label><textarea id="mmsg" name="message" maxlength="1500" required></textarea></div>
+        <input class="hp" id="mhp" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true"/>
+        <button type="submit" id="msend">Send message</button>
+        <p class="tn" id="mn" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="sec last">
     <div class="wrap">
       <div class="sh"><span class="sl">Messages</span><span class="sr"></span></div>
       <div id="rnotes" aria-live="polite"></div>
@@ -109,23 +148,22 @@ footer b{color:var(--gb);font-weight:400;}
   if(text){el.textContent=text;el.hidden=false;}
 })();
 
-/* The messages: one for each year, newest first. They are added in the database, so no change to the page is needed. */
+/* The messages: anyone can write one, only approved ones are shown, grouped by year with the newest year first. */
 (function(){
   var CFG=window.MEMORIAL_TRIBUTES||{};
-  var box=document.getElementById('rnotes');
-  if(!box)return;
+  var form=document.getElementById('tf'),box=document.getElementById('rnotes'),note=document.getElementById('mn'),send=document.getElementById('msend');
+  if(!form||!box)return;
+  var NL=String.fromCharCode(10);
+  var API=(CFG.url||'')+'/rest/v1/memorial_notes';
+  var h={apikey:CFG.key||''};
+  if((CFG.key||'').indexOf('eyJ')===0)h.Authorization='Bearer '+CFG.key;
+  function headers(extra){var o={};for(var k in h)o[k]=h[k];for(var j in extra)o[j]=extra[j];return o;}
+
   function empty(){
     box.textContent='';
     var p=document.createElement('p');p.className='empty';
-    p.textContent='The first message will be added here on the next anniversary. Please come back then.';
+    p.textContent='No messages yet. You are welcome to write the first one above.';
     box.appendChild(p);
-  }
-  if(!CFG.url||!CFG.key){empty();return;}
-  var h={apikey:CFG.key};
-  if(CFG.key.indexOf('eyJ')===0)h.Authorization='Bearer '+CFG.key;
-  var NL=String.fromCharCode(10);
-  function get(cols){
-    return fetch(CFG.url+'/rest/v1/memorial_notes?select='+cols+'&order=year.desc&limit=60',{headers:h});
   }
   function nice(iso){
     var p=String(iso||'').split('-');
@@ -134,29 +172,87 @@ footer b{color:var(--gb);font-weight:400;}
     if(isNaN(d.getTime()))return '';
     return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   }
-  // Asks for the written_on date. If that column has not been added yet, asks again without it.
-  get('year,title,body,written_on')
-    .then(function(r){return r.ok?r:get('year,title,body');})
-    .then(function(r){return r.ok?r.json():[];})
-    .then(function(rows){
-      if(!Array.isArray(rows)||!rows.length){empty();return;}
-      rows.forEach(function(r){
-        var row=document.createElement('article');row.className='rn';
-        var yr=document.createElement('div');
-        var y=document.createElement('div');y.className='ry';y.textContent=String(r.year);
-        yr.appendChild(y);
-        var when=nice(r.written_on);
-        if(when){var wd=document.createElement('div');wd.className='wd';wd.textContent='Written '+when;yr.appendChild(wd);}
-        var body=document.createElement('div');
-        if(r.title){var hd=document.createElement('h2');hd.textContent=r.title;body.appendChild(hd);}
+  function draw(rows){
+    box.textContent='';
+    var groups={},order=[];
+    rows.forEach(function(r){
+      var y=String(r.year);
+      if(!groups[y]){groups[y]=[];order.push(y);}
+      groups[y].push(r);
+    });
+    order.sort(function(a,b){return Number(b)-Number(a);});
+    order.forEach(function(y){
+      var sec=document.createElement('section');sec.className='yr';
+      var yy=document.createElement('div');yy.className='y';yy.textContent=y;
+      var list=document.createElement('div');
+      groups[y].forEach(function(r){
+        var m=document.createElement('article');m.className='msg';
+        if(r.title){var t=document.createElement('h3');t.textContent=r.title;m.appendChild(t);}
         String(r.body||'').split(NL+NL).forEach(function(par){
           if(!par.trim())return;
-          var pe=document.createElement('p');pe.textContent=par.trim();body.appendChild(pe);
+          var p=document.createElement('p');p.textContent=par.trim();m.appendChild(p);
         });
-        row.appendChild(yr);row.appendChild(body);box.appendChild(row);
+        var by=document.createElement('div');by.className='by';
+        var who=[];
+        if(r.author)who.push(r.author);
+        if(r.relationship)who.push(r.relationship);
+        if(who.length){
+          var b=document.createElement('b');b.textContent=who[0];by.appendChild(b);
+          if(who[1])by.appendChild(document.createTextNode(' · '+who[1]));
+        }
+        var when=nice(r.written_on);
+        if(when)by.appendChild(document.createTextNode((who.length?' · ':'')+'Written '+when));
+        if(by.childNodes.length)m.appendChild(by);
+        list.appendChild(m);
       });
-    })
-    .catch(function(){empty();});
+      sec.appendChild(yy);sec.appendChild(list);box.appendChild(sec);
+    });
+  }
+
+  if(!CFG.url||!CFG.key){
+    send.disabled=true;note.textContent='Messages will open here very soon. Please check back.';empty();return;
+  }
+
+  // Ask for everything first. If the database has not been updated yet, quietly ask for less.
+  var TRIES=[
+    {cols:'year,title,body,written_on,author,relationship,created_at',filter:'&approved=eq.true'},
+    {cols:'year,title,body,written_on',filter:''},
+    {cols:'year,title,body',filter:''}
+  ];
+  function load(i){
+    if(i>=TRIES.length){empty();return;}
+    var tr=TRIES[i];
+    var order=i===0?'&order=year.desc,created_at.desc':'&order=year.desc';
+    fetch(API+'?select='+tr.cols+tr.filter+order+'&limit=200',{headers:headers()})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(rows){
+        if(rows===null){load(i+1);return;}
+        if(Array.isArray(rows)&&rows.length)draw(rows);else empty();
+      })
+      .catch(function(){load(i+1);});
+  }
+  load(0);
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    note.className='tn';
+    if(document.getElementById('mhp').value)return;
+    var name=document.getElementById('mname').value.trim();
+    var rel=document.getElementById('mrel').value.trim();
+    var msg=document.getElementById('mmsg').value.trim();
+    if(!name||!msg){note.textContent='Please add your name and a message.';return;}
+    send.disabled=true;note.textContent='Sending...';
+    fetch(API,{method:'POST',headers:headers({'Content-Type':'application/json',Prefer:'return=minimal'}),
+      body:JSON.stringify({year:new Date().getFullYear(),author:name,relationship:rel||null,body:msg,approved:false})})
+      .then(function(r){
+        if(!r.ok)throw new Error('failed');
+        form.reset();
+        note.className='tn ok';
+        note.textContent='Thank you. Your message will appear here once the family has read it.';
+      })
+      .catch(function(){note.textContent='Sorry, that did not send. Please try again in a moment.';})
+      .then(function(){send.disabled=false;});
+  });
 })();
 </script>
 </body>

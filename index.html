@@ -400,6 +400,7 @@ figure{margin:0;}
     <div class="rl"></div>
     <p>Rest in peace, dear Josephine.<br/>You are loved, you are cherished, and you are deeply missed.</p>
     <p class="md" style="margin-top:1.8rem">In loving memory &middot; made by her niece <b>Deborah Akpokighe</b></p>
+    <p class="md" style="margin-top:.6rem">Music: <i>It Is Well with My Soul</i>, Philip P. Bliss (1876), setting by Peter Gerloff, public domain (CC0).</p>
   </div>
 </section>
 
@@ -473,33 +474,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
   });
   load();
 })();
-
-/* Music: starts only when someone presses the button, and fades in softly. */
-(function(){
-  var btn=document.getElementById('mu');
-  if(!btn)return;
-  var SRC='audio/theme.mp3',LEVEL=0.35,audio=null,on=false,timer=null;
-  fetch(SRC,{method:'HEAD'}).then(function(r){if(r.ok)btn.hidden=false;}).catch(function(){});
-  function fade(to,ms,done){
-    clearInterval(timer);
-    var from=audio.volume,steps=20,i=0;
-    timer=setInterval(function(){
-      i++;audio.volume=Math.max(0,Math.min(1,from+(to-from)*(i/steps)));
-      if(i>=steps){clearInterval(timer);if(done)done();}
-    },ms/steps);
-  }
-  btn.addEventListener('click',function(){
-    if(!audio){audio=new Audio(SRC);audio.loop=true;audio.volume=0;}
-    if(!on){
-      audio.play().then(function(){
-        on=true;btn.setAttribute('aria-pressed','true');btn.textContent='Pause music';fade(LEVEL,1800);
-      }).catch(function(){});
-    }else{
-      on=false;btn.setAttribute('aria-pressed','false');btn.textContent='Play music';
-      fade(0,800,function(){audio.pause();});
-    }
-  });
-})();
 </script>
+<script src="hymn-notes.js" defer></script>
+<script src="music.js" defer></script>
 </body>
 </html>

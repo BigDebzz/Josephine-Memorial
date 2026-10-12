@@ -132,6 +132,17 @@ figure{margin:0;}
 .mu{position:fixed;right:1rem;bottom:1rem;z-index:45;background:rgba(20,20,23,.88);color:var(--ink);border:1px solid var(--line);padding:.7rem 1.1rem;font:inherit;font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;border-radius:2px;backdrop-filter:blur(6px);}
 .mu:hover{border-color:var(--gold);}
 .mu[hidden]{display:none;}
+
+.tlink{display:inline-block;margin-top:1.2rem;font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gb);border-bottom:1px solid var(--gold);padding-bottom:.25rem;text-decoration:none;opacity:0;animation:fd 1.3s ease 1.6s forwards;}
+.tlink:hover{color:var(--ink);}
+/* photos are shown whole, in their own proportions, instead of being cropped into fixed frames */
+.fr,.t34,.t45,.w169,.sq{aspect-ratio:auto!important;height:auto!important;min-height:0!important;}
+.fr img{height:auto!important;object-fit:contain;}
+.g.two,.g.ti,.g.it{align-items:start;}
+.mo{display:block!important;column-count:2;column-gap:clamp(.6rem,2vw,1.1rem);}
+@media(min-width:760px){.mo{column-count:4;}}
+.mo .ck,.mo .s2,.mo .r2{grid-column:auto!important;grid-row:auto!important;aspect-ratio:auto!important;break-inside:avoid;margin:0 0 clamp(.6rem,2vw,1.1rem);}
+.cl .mem img{height:auto;}
 </style>
 </head>
 <body>
@@ -158,6 +169,7 @@ figure{margin:0;}
       <span class="role">Oberiko &middot; n&eacute;e Anighoro &middot; aged forty-one</span>
     </div>
     <div class="scue">Her story</div>
+      <a class="tlink" href="#tributes">Leave a tribute</a>
   </div>
 </header>
 
@@ -429,7 +441,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
   var KEY=CFG.key||'';
   var form=document.getElementById('tf'),list=document.getElementById('tlist'),note=document.getElementById('tn'),send=document.getElementById('tsend');
   if(!form||!list)return;
-  if(!CFG.url||!CFG.key){var sec=document.getElementById('tributes');if(sec)sec.hidden=true;return;}
+  if(!CFG.url||!CFG.key){send.disabled=true;note.textContent='Tributes will open here very soon. Please check back.';list.textContent='';return;}
   function headers(extra){var h={apikey:KEY,Authorization:'Bearer '+KEY};for(var k in extra)h[k]=extra[k];return h;}
   function when(iso){try{return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}catch(e){return '';}}
   function render(rows){

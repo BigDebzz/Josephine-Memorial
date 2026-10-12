@@ -185,7 +185,9 @@
   }
 
   // ---------- the "tap anywhere" fallback ----------
-  var EVENTS = ['pointerdown', 'touchend', 'keydown', 'click'];
+  // Only events that browsers count as a real tap for sound. The "press down" event does not count on phones,
+  // so it is deliberately not listed, and a listener is kept until the sound has really started.
+  var EVENTS = ['pointerup', 'touchend', 'click', 'keydown'];
   function showHint() {
     if (hint) return;
     hint = document.createElement('div');
@@ -209,9 +211,9 @@
   function onFirstTouch(e) {
     if (!waiting) return;
     if (btn.contains(e.target)) return; // the button handles its own press
-    stopWaiting();
-    if (remembered() || document.hidden) return;
-    start().catch(function () {});
+    if (remembered() || document.hidden) { stopWaiting(); return; }
+    // Keep listening until the sound has really started, so a touch that does not count is not wasted.
+    start().then(function () { stopWaiting(); }, function () { /* blocked again: wait for the next tap */ });
   }
   function waitForFirstTouch() {
     if (waiting) return;

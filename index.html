@@ -143,6 +143,14 @@ figure{margin:0;}
 @media(min-width:760px){.mo{column-count:4;}}
 .mo .ck,.mo .s2,.mo .r2{grid-column:auto!important;grid-row:auto!important;aspect-ratio:auto!important;break-inside:avoid;margin:0 0 clamp(.6rem,2vw,1.1rem);}
 .cl .mem img{height:auto;}
+
+.ann{margin-top:1rem;font-family:'Fraunces',serif;font-style:italic;font-size:clamp(1.05rem,3.6vw,1.35rem);color:var(--gb);max-width:34ch;line-height:1.4;text-shadow:0 1px 14px rgba(11,11,13,.95),0 0 3px rgba(11,11,13,.8);opacity:0;animation:fd 1.4s ease 1.2s forwards;}
+.ann[hidden]{display:none;}
+.rn{border-top:1px solid var(--line);padding:2rem 0 .6rem;display:grid;gap:.6rem;}
+@media(min-width:680px){.rn{grid-template-columns:7rem 1fr;gap:3rem;}}
+.rn .ry{font-family:'Fraunces',serif;font-size:1.6rem;color:var(--gold);line-height:1;}
+.rn h3{font-family:'Fraunces',serif;font-weight:300;font-size:1.35rem;color:var(--ink);margin-bottom:.6rem;}
+.rn p{color:var(--dim);font-size:1.02rem;max-width:60ch;margin-bottom:1rem;white-space:pre-line;}
 </style>
 </head>
 <body>
@@ -158,6 +166,7 @@ figure{margin:0;}
   </div>
   <div class="hero-top">
     <p class="ey"><span>Deaconess &middot; Mother &middot; Friend</span></p>
+    <p class="ann" id="ann" hidden></p>
   </div>
   <div class="hero-bot">
     <h1 class="hname">
@@ -398,6 +407,13 @@ figure{margin:0;}
   </div>
 </section>
 
+<section class="sec" id="remembering" hidden>
+  <div class="wrap" style="max-width:900px">
+    <div class="sh rv"><span class="sn">(10)</span><span class="sl">Remembering</span><span class="sr"></span><span class="sl">Each year, a few words</span></div>
+    <div id="rnotes"></div>
+  </div>
+</section>
+
 <section class="cl">
   <div class="rv">
     <figure class="mem ck"><img src="images/photo-23.webp" width="540" height="900" loading="lazy" decoding="async" alt="Memorial portrait of Deaconess Josephine Oghenetega Oberiko" /></figure>
@@ -485,6 +501,57 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
       .then(function(){send.disabled=false;});
   });
   load();
+})();
+
+/* The page marks her day by itself: 12 October, and her birthday on 28 June. Shown for three days either side. */
+(function(){
+  var el=document.getElementById('ann');
+  if(!el)return;
+  var WORDS=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'];
+  function num(n){return n<=10?WORDS[n]:String(n);}
+  function ordinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+  var now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),y=today.getFullYear();
+  function offset(m,d){return Math.round((today-new Date(y,m,d))/86400000);}
+  var text='';
+  var passed=offset(9,12),born=offset(5,28),yearsGone=y-2024,age=y-1983;
+  if(Math.abs(passed)<=3&&yearsGone>=1){
+    var u=yearsGone===1?' year':' years';
+    text=passed===0
+      ?'Today, 12 October, we remember Josephine. '+num(yearsGone)+u+' since she left us.'
+      :'12 October marks '+num(yearsGone).toLowerCase()+u+' since Josephine left us. We remember her.';
+  }else if(Math.abs(born)<=3&&age>=1){
+    text=born===0
+      ?'Today would have been Josephine\u2019s '+ordinal(age)+' birthday.'
+      :'28 June, her birthday. She would have been '+age+'.';
+  }
+  if(text){el.textContent=text;el.hidden=false;}
+})();
+
+/* Remembering: a note for each year, kept in the database so it can be added without touching the page. */
+(function(){
+  var CFG=window.MEMORIAL_TRIBUTES||{};
+  var box=document.getElementById('rnotes'),sec=document.getElementById('remembering');
+  if(!box||!sec||!CFG.url||!CFG.key)return;
+  var h={apikey:CFG.key};
+  if(CFG.key.indexOf('eyJ')===0)h.Authorization='Bearer '+CFG.key;
+  fetch(CFG.url+'/rest/v1/memorial_notes?select=year,title,body&order=year.desc&limit=60',{headers:h})
+    .then(function(r){return r.ok?r.json():[];})
+    .then(function(rows){
+      if(!Array.isArray(rows)||!rows.length)return;
+      rows.forEach(function(r){
+        var row=document.createElement('div');row.className='rn rv in';
+        var yr=document.createElement('div');yr.className='ry';yr.textContent=String(r.year);
+        var body=document.createElement('div');
+        if(r.title){var hd=document.createElement('h3');hd.textContent=r.title;body.appendChild(hd);}
+        String(r.body||'').split(String.fromCharCode(10)+String.fromCharCode(10)).forEach(function(par){
+          if(!par.trim())return;
+          var pe=document.createElement('p');pe.textContent=par.trim();body.appendChild(pe);
+        });
+        row.appendChild(yr);row.appendChild(body);box.appendChild(row);
+      });
+      sec.hidden=false;
+    })
+    .catch(function(){});
 })();
 </script>
 <script src="hymn-notes.js" defer></script>

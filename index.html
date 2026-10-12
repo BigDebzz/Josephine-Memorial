@@ -442,7 +442,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
   var form=document.getElementById('tf'),list=document.getElementById('tlist'),note=document.getElementById('tn'),send=document.getElementById('tsend');
   if(!form||!list)return;
   if(!CFG.url||!CFG.key){send.disabled=true;note.textContent='Tributes will open here very soon. Please check back.';list.textContent='';return;}
-  function headers(extra){var h={apikey:KEY,Authorization:'Bearer '+KEY};for(var k in extra)h[k]=extra[k];return h;}
+  function headers(extra){var h={apikey:KEY};if(KEY.indexOf('eyJ')===0)h.Authorization='Bearer '+KEY;for(var k in extra)h[k]=extra[k];return h;}
   function when(iso){try{return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}catch(e){return '';}}
   function render(rows){
     list.textContent='';

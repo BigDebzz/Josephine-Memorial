@@ -1,9 +1,13 @@
 /* Background music for the memorial page.
-   It never starts by itself. It plays only when someone presses the button, and fades in softly.
+
+   It tries to start as soon as the page opens. Browsers only allow sound after the visitor has touched
+   the page, so if it is blocked, a short line asks them to tap anywhere, and the music begins on their
+   first tap, click or key press. It always fades in softly, and the button pauses it at any time.
+   If someone pauses it, it stays paused for the rest of their visit.
 
    1. If a recording exists at audio/theme.mp3, that is played.
    2. Otherwise the page plays the hymn "It Is Well with My Soul" itself, from the notes in
-      hymn-notes.js (melody by Philip P. Bliss, 1876; setting released as CC0). No recording is needed. */
+      hymn-notes.js (melody by Philip P. Bliss, 1876; setting released as CC0). */
 (function () {
   var btn = document.getElementById('mu');
   if (!btn) return;
@@ -11,14 +15,14 @@
   var FILE = 'audio/theme.mp3';
   var BPM = 80;          // a calm hymn pace
   var LEVEL = 0.5;       // overall volume once faded in
-  var fileMode = false;  // becomes true if audio/theme.mp3 exists
+  var KEY = 'memorial-music-off';
+  var fileMode = false;  // true if audio/theme.mp3 exists
   var on = false;
+  var waiting = false;   // waiting for the visitor's first tap
+  var hint = null;
 
-  // file playback
-  var audio = null;
-  var fileTimer = null;
+  var audio = null, fileTimer = null;
 
-  // synthesized playback
   var AC = window.AudioContext || window.webkitAudioContext;
   var ctx = null, master = null, bus = null, wave = null, pump = null, pauseTimer = null;
   var nextStart = 0, scheduledEnd = 0;
@@ -26,9 +30,8 @@
   btn.hidden = false;
   btn.title = 'It Is Well with My Soul';
 
-  // Find out early whether a recording was added. The answer is ready before anyone presses the button,
-  // so playback still starts straight from the press, which phones require.
-  fetch(FILE, { method: 'HEAD' }).then(function (r) { fileMode = r.ok; }).catch(function () {});
+  function remembered() { try { return sessionStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+  function remember(v) { try { if (v) sessionStorage.setItem(KEY, '1'); else sessionStorage.removeItem(KEY); } catch (e) { /* ignore */ } }
 
   function setState(playing) {
     on = playing;
@@ -48,7 +51,7 @@
   }
   function playFile() {
     if (!audio) { audio = new Audio(FILE); audio.loop = true; audio.volume = 0; }
-    audio.play().then(function () { setState(true); fadeFile(LEVEL * 0.7, 1800); }).catch(function () {});
+    return audio.play().then(function () { setState(true); fadeFile(LEVEL * 0.7, 1800); });
   }
   function pauseFile() {
     setState(false);
@@ -78,7 +81,6 @@
     tone.connect(dry); tone.connect(room); room.connect(wet);
     dry.connect(master); wet.connect(master);
     master.connect(ctx.destination);
-    // a soft, organ-like voice: a fundamental with a few gentle harmonics
     wave = ctx.createPeriodicWave(new Float32Array([0, 0, 0, 0, 0, 0]), new Float32Array([0, 1, 0.45, 0.22, 0.1, 0.05]));
     bus = tone;
   }
@@ -113,25 +115,18 @@
       scheduledEnd = schedule(nextStart);
     }
   }
-  function playHymn() {
-    if (!AC || !window.HYMN_NOTES) { return; }
-    clearTimeout(pauseTimer);
-    if (!ctx) {
-      build();
-      nextStart = ctx.currentTime + 0.3;
-      scheduledEnd = schedule(nextStart);
-      pump = setInterval(keepLooping, 1000);
-    }
-    var t = ctx.currentTime;
-    var go = function () {
-      master.gain.cancelScheduledValues(ctx.currentTime);
-      master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-      master.gain.linearRampToValueAtTime(LEVEL, ctx.currentTime + 2);
-      setState(true);
-    };
-    var r = ctx.resume();
-    if (r && r.then) { r.then(go); } else { go(); }
-    return t;
+  function prepareHymn() {
+    if (ctx) return;
+    build();
+    nextStart = ctx.currentTime + 0.3;
+    scheduledEnd = schedule(nextStart);
+    pump = setInterval(keepLooping, 1000);
+  }
+  function fadeInHymn() {
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(LEVEL, ctx.currentTime + 2);
+    setState(true);
   }
   function pauseHymn() {
     setState(false);
@@ -142,8 +137,85 @@
     pauseTimer = setTimeout(function () { ctx.suspend(); }, 900);
   }
 
+  // ---------- starting ----------
+  // Returns a promise that resolves once sound is really playing, and rejects if the browser blocked it.
+  function start() {
+    if (fileMode) return playFile();
+    if (!AC || !window.HYMN_NOTES) return Promise.reject(new Error('no sound'));
+    clearTimeout(pauseTimer);
+    prepareHymn();
+    return new Promise(function (resolve, reject) {
+      var finished = false;
+      // A blocked browser often leaves resume() hanging rather than failing, so a short timer decides too.
+      function finish() {
+        if (finished) return;
+        finished = true;
+        if (ctx.state === 'running') { fadeInHymn(); resolve(); } else { reject(new Error('blocked')); }
+      }
+      Promise.resolve(ctx.resume()).then(finish, finish);
+      setTimeout(finish, 700);
+    });
+  }
+  function stop() {
+    if (fileMode) pauseFile(); else pauseHymn();
+  }
+
+  // ---------- the "tap anywhere" fallback ----------
+  var EVENTS = ['pointerdown', 'touchend', 'keydown', 'click'];
+  function showHint() {
+    if (hint) return;
+    hint = document.createElement('div');
+    hint.textContent = 'Tap anywhere to begin the music';
+    hint.setAttribute('role', 'status');
+    hint.style.cssText = 'position:fixed;left:50%;bottom:4.2rem;transform:translateX(-50%);z-index:46;background:rgba(20,20,23,.9);'
+      + 'color:#e2bd76;border:1px solid rgba(243,239,231,.12);padding:.6rem 1rem;font-size:.7rem;letter-spacing:.18em;'
+      + 'text-transform:uppercase;border-radius:2px;transition:opacity .8s ease;white-space:nowrap;max-width:92vw;';
+    document.body.appendChild(hint);
+    setTimeout(function () { if (hint) hint.style.opacity = '0'; }, 7000);
+  }
+  function hideHint() {
+    if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
+    hint = null;
+  }
+  function onFirstTouch(e) {
+    if (!waiting) return;
+    if (btn.contains(e.target)) return; // the button handles its own press
+    waiting = false;
+    EVENTS.forEach(function (n) { document.removeEventListener(n, onFirstTouch, true); });
+    hideHint();
+    if (remembered()) return;
+    start().catch(function () {});
+  }
+  function waitForFirstTouch() {
+    if (waiting) return;
+    waiting = true;
+    showHint();
+    EVENTS.forEach(function (n) { document.addEventListener(n, onFirstTouch, true); });
+  }
+
+  function tryAutoplay() {
+    if (remembered()) return;
+    start().catch(function () { waitForFirstTouch(); });
+  }
+
   btn.addEventListener('click', function () {
-    if (fileMode) { if (on) pauseFile(); else playFile(); return; }
-    if (on) pauseHymn(); else playHymn();
+    if (waiting) {
+      waiting = false;
+      EVENTS.forEach(function (n) { document.removeEventListener(n, onFirstTouch, true); });
+      hideHint();
+    }
+    if (on) {
+      remember(true);
+      stop();
+    } else {
+      remember(false);
+      start().catch(function () {});
+    }
   });
+
+  // Find out whether a recording was added, then try to start.
+  fetch(FILE, { method: 'HEAD' })
+    .then(function (r) { fileMode = r.ok; })
+    .catch(function () { fileMode = false; })
+    .then(tryAutoplay);
 })();

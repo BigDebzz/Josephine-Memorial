@@ -1,30 +1,37 @@
 /* Background music for the memorial page.
 
-   It tries to start as soon as the page opens. Browsers only allow sound after the visitor has touched
-   the page, so if it is blocked, a short line asks them to tap anywhere, and the music begins on their
-   first tap, click or key press. It always fades in softly, and the button pauses it at any time.
-   If someone pauses it, it stays paused for the rest of their visit.
+   - It tries to start when the page opens. Browsers only allow sound after the visitor has touched the page,
+     so if it is blocked, a short line asks them to tap anywhere, and it begins on their first tap.
+   - It fades in softly. The button stops it at any time, and a stop is always complete: the sound engine is
+     shut down, not just turned down.
+   - It stops by itself when the visitor leaves the tab or closes the page, and it stays stopped until they
+     press Play.
+   - If someone pauses it, it stays paused for the rest of their visit.
 
    1. If a recording exists at audio/theme.mp3, that is played.
    2. Otherwise the page plays the hymn "It Is Well with My Soul" itself, from the notes in
       hymn-notes.js (melody by Philip P. Bliss, 1876; setting released as CC0). */
 (function () {
+  if (window.__memorialMusicStarted) return; // never run twice on one page
+  window.__memorialMusicStarted = true;
+
   var btn = document.getElementById('mu');
   if (!btn) return;
 
   var FILE = 'audio/theme.mp3';
   var BPM = 80;          // a calm hymn pace
-  var LEVEL = 0.5;       // overall volume once faded in
+  var LEVEL = 0.4;       // overall volume once faded in (kept gentle)
   var KEY = 'memorial-music-off';
   var fileMode = false;  // true if audio/theme.mp3 exists
   var on = false;
   var waiting = false;   // waiting for the visitor's first tap
+  var tried = false;     // the automatic start has been attempted
   var hint = null;
 
   var audio = null, fileTimer = null;
 
   var AC = window.AudioContext || window.webkitAudioContext;
-  var ctx = null, master = null, bus = null, wave = null, pump = null, pauseTimer = null;
+  var ctx = null, master = null, bus = null, wave = null, pump = null;
   var nextStart = 0, scheduledEnd = 0;
 
   btn.hidden = false;
@@ -53,15 +60,18 @@
     if (!audio) { audio = new Audio(FILE); audio.loop = true; audio.volume = 0; }
     return audio.play().then(function () { setState(true); fadeFile(LEVEL * 0.7, 1800); });
   }
-  function pauseFile() {
+  function stopFile(immediately) {
     setState(false);
-    fadeFile(0, 800, function () { audio.pause(); });
+    if (!audio) return;
+    clearInterval(fileTimer);
+    if (immediately) { audio.pause(); return; }
+    fadeFile(0, 600, function () { audio.pause(); });
   }
 
   // ---------- the hymn, played by the page ----------
-  function impulse() {
-    var len = Math.floor(ctx.sampleRate * 2.6);
-    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  function impulse(c) {
+    var len = Math.floor(c.sampleRate * 2.6);
+    var buf = c.createBuffer(2, len, c.sampleRate);
     for (var ch = 0; ch < 2; ch += 1) {
       var d = buf.getChannelData(ch);
       for (var i = 0; i < len; i += 1) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.4);
@@ -77,7 +87,7 @@
     tone.frequency.value = 2200;
     var dry = ctx.createGain(); dry.gain.value = 0.8;
     var wet = ctx.createGain(); wet.gain.value = 0.38;
-    var room = ctx.createConvolver(); room.buffer = impulse();
+    var room = ctx.createConvolver(); room.buffer = impulse(ctx);
     tone.connect(dry); tone.connect(room); room.connect(wet);
     dry.connect(master); wet.connect(master);
     master.connect(ctx.destination);
@@ -109,7 +119,7 @@
     return end;
   }
   function keepLooping() {
-    // when the hymn is nearly over, line up the next time through. Audio time stops while paused, so this stays in step.
+    // when the hymn is nearly over, line up the next time through
     if (ctx && ctx.currentTime > scheduledEnd - 3) {
       nextStart = scheduledEnd + 2.5; // a quiet pause between verses
       scheduledEnd = schedule(nextStart);
@@ -124,40 +134,54 @@
   }
   function fadeInHymn() {
     master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-    master.gain.linearRampToValueAtTime(LEVEL, ctx.currentTime + 2);
+    master.gain.setValueAtTime(0, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(LEVEL, ctx.currentTime + 3);
     setState(true);
   }
-  function pauseHymn() {
+  // A full stop: forget the sound engine straight away, then close it. A fresh one is built on the next play.
+  function stopHymn(immediately) {
     setState(false);
-    var t = ctx.currentTime;
-    master.gain.cancelScheduledValues(t);
-    master.gain.setValueAtTime(master.gain.value, t);
-    master.gain.linearRampToValueAtTime(0, t + 0.8);
-    pauseTimer = setTimeout(function () { ctx.suspend(); }, 900);
+    clearInterval(pump);
+    pump = null;
+    var c = ctx, m = master;
+    ctx = null; master = null; bus = null;
+    if (!c) return;
+    function shut() { try { c.close(); } catch (e) { /* already closed */ } }
+    if (immediately) {
+      try { m.gain.cancelScheduledValues(0); m.gain.value = 0; } catch (e) { /* ignore */ }
+      shut();
+      return;
+    }
+    try {
+      var t = c.currentTime;
+      m.gain.cancelScheduledValues(t);
+      m.gain.setValueAtTime(m.gain.value, t);
+      m.gain.linearRampToValueAtTime(0, t + 0.5);
+    } catch (e) { /* ignore */ }
+    setTimeout(shut, 600);
   }
 
-  // ---------- starting ----------
-  // Returns a promise that resolves once sound is really playing, and rejects if the browser blocked it.
+  // ---------- starting and stopping ----------
+  // Resolves once sound is really playing, and rejects if the browser blocked it.
   function start() {
     if (fileMode) return playFile();
     if (!AC || !window.HYMN_NOTES) return Promise.reject(new Error('no sound'));
-    clearTimeout(pauseTimer);
     prepareHymn();
+    var c = ctx;
     return new Promise(function (resolve, reject) {
       var finished = false;
       // A blocked browser often leaves resume() hanging rather than failing, so a short timer decides too.
       function finish() {
         if (finished) return;
         finished = true;
-        if (ctx.state === 'running') { fadeInHymn(); resolve(); } else { reject(new Error('blocked')); }
+        if (ctx === c && c.state === 'running') { fadeInHymn(); resolve(); } else { reject(new Error('blocked')); }
       }
-      Promise.resolve(ctx.resume()).then(finish, finish);
+      Promise.resolve(c.resume()).then(finish, finish);
       setTimeout(finish, 700);
     });
   }
-  function stop() {
-    if (fileMode) pauseFile(); else pauseHymn();
+  function stop(immediately) {
+    if (fileMode) stopFile(immediately); else stopHymn(immediately);
   }
 
   // ---------- the "tap anywhere" fallback ----------
@@ -177,13 +201,16 @@
     if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
     hint = null;
   }
-  function onFirstTouch(e) {
-    if (!waiting) return;
-    if (btn.contains(e.target)) return; // the button handles its own press
+  function stopWaiting() {
     waiting = false;
     EVENTS.forEach(function (n) { document.removeEventListener(n, onFirstTouch, true); });
     hideHint();
-    if (remembered()) return;
+  }
+  function onFirstTouch(e) {
+    if (!waiting) return;
+    if (btn.contains(e.target)) return; // the button handles its own press
+    stopWaiting();
+    if (remembered() || document.hidden) return;
     start().catch(function () {});
   }
   function waitForFirstTouch() {
@@ -194,28 +221,41 @@
   }
 
   function tryAutoplay() {
+    if (tried) return;
+    tried = true;
     if (remembered()) return;
     start().catch(function () { waitForFirstTouch(); });
   }
 
   btn.addEventListener('click', function () {
-    if (waiting) {
-      waiting = false;
-      EVENTS.forEach(function (n) { document.removeEventListener(n, onFirstTouch, true); });
-      hideHint();
-    }
+    stopWaiting();
     if (on) {
       remember(true);
-      stop();
+      stop(false);
     } else {
       remember(false);
       start().catch(function () {});
     }
   });
 
-  // Find out whether a recording was added, then try to start.
+  // Leaving the tab, or closing the page, stops the music completely. It stays stopped until Play is pressed.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      stopWaiting();
+      if (on) stop(true);
+    }
+  });
+  window.addEventListener('pagehide', function () { if (on) stop(true); });
+
+  // Find out whether a recording was added, then try to start (but never while the tab is in the background).
   fetch(FILE, { method: 'HEAD' })
     .then(function (r) { fileMode = r.ok; })
     .catch(function () { fileMode = false; })
-    .then(tryAutoplay);
+    .then(function () {
+      if (!document.hidden) { tryAutoplay(); return; }
+      var once = function () {
+        if (!document.hidden) { document.removeEventListener('visibilitychange', once); tryAutoplay(); }
+      };
+      document.addEventListener('visibilitychange', once);
+    });
 })();

@@ -39,6 +39,7 @@ h1 em{font-style:italic;color:var(--gb);}
 .rn{border-top:1px solid var(--line);padding:2.2rem 0 .8rem;display:grid;gap:.7rem;}
 @media(min-width:680px){.rn{grid-template-columns:7rem 1fr;gap:3rem;}}
 .rn .ry{font-family:'Fraunces',serif;font-size:1.7rem;color:var(--gold);line-height:1;}
+.rn .wd{margin-top:.7rem;font-family:'Archivo',sans-serif;font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);line-height:1.5;}
 .rn h2{font-family:'Fraunces',serif;font-weight:300;font-size:1.45rem;color:var(--ink);margin-bottom:.7rem;}
 .rn p{color:var(--dim);font-size:1.04rem;max-width:62ch;margin-bottom:1.1rem;white-space:pre-line;}
 .empty{border-top:1px solid var(--line);padding:2.2rem 0;color:var(--dim);font-family:'Fraunces',serif;font-style:italic;font-size:1.2rem;max-width:42ch;}
@@ -123,13 +124,29 @@ footer b{color:var(--gb);font-weight:400;}
   var h={apikey:CFG.key};
   if(CFG.key.indexOf('eyJ')===0)h.Authorization='Bearer '+CFG.key;
   var NL=String.fromCharCode(10);
-  fetch(CFG.url+'/rest/v1/memorial_notes?select=year,title,body&order=year.desc&limit=60',{headers:h})
+  function get(cols){
+    return fetch(CFG.url+'/rest/v1/memorial_notes?select='+cols+'&order=year.desc&limit=60',{headers:h});
+  }
+  function nice(iso){
+    var p=String(iso||'').split('-');
+    if(p.length!==3)return '';
+    var d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));
+    if(isNaN(d.getTime()))return '';
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  }
+  // Asks for the written_on date. If that column has not been added yet, asks again without it.
+  get('year,title,body,written_on')
+    .then(function(r){return r.ok?r:get('year,title,body');})
     .then(function(r){return r.ok?r.json():[];})
     .then(function(rows){
       if(!Array.isArray(rows)||!rows.length){empty();return;}
       rows.forEach(function(r){
         var row=document.createElement('article');row.className='rn';
-        var yr=document.createElement('div');yr.className='ry';yr.textContent=String(r.year);
+        var yr=document.createElement('div');
+        var y=document.createElement('div');y.className='ry';y.textContent=String(r.year);
+        yr.appendChild(y);
+        var when=nice(r.written_on);
+        if(when){var wd=document.createElement('div');wd.className='wd';wd.textContent='Written '+when;yr.appendChild(wd);}
         var body=document.createElement('div');
         if(r.title){var hd=document.createElement('h2');hd.textContent=r.title;body.appendChild(hd);}
         String(r.body||'').split(NL+NL).forEach(function(par){

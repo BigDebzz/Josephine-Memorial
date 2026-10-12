@@ -22,3 +22,6 @@ create policy "anyone can read remembrance notes"
   on public.memorial_notes for select
   to anon, authenticated
   using (true);
+
+-- Optional: the date you wrote each note. When filled in, the page shows it under the year.
+alter table public.memorial_notes add column if not exists written_on date;

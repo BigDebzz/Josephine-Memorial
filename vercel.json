@@ -16,5 +16,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/remembrance",
+      "destination": "/remembrance.html"
+    }
   ]
 }

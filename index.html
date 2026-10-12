@@ -151,6 +151,7 @@ figure{margin:0;}
 .rn .ry{font-family:'Fraunces',serif;font-size:1.6rem;color:var(--gold);line-height:1;}
 .rn h3{font-family:'Fraunces',serif;font-weight:300;font-size:1.35rem;color:var(--ink);margin-bottom:.6rem;}
 .rn p{color:var(--dim);font-size:1.02rem;max-width:60ch;margin-bottom:1rem;white-space:pre-line;}
+.tlink+.tlink{margin-left:1.6rem;}
 </style>
 </head>
 <body>
@@ -179,6 +180,7 @@ figure{margin:0;}
     </div>
     <div class="scue">Her story</div>
       <a class="tlink" href="#tributes">Leave a tribute</a>
+      <a class="tlink" href="remembrance.html">Yearly remembrance messages</a>
   </div>
 </header>
 
@@ -407,13 +409,6 @@ figure{margin:0;}
   </div>
 </section>
 
-<section class="sec" id="remembering" hidden>
-  <div class="wrap" style="max-width:900px">
-    <div class="sh rv"><span class="sn">(10)</span><span class="sl">Remembering</span><span class="sr"></span><span class="sl">Each year, a few words</span></div>
-    <div id="rnotes"></div>
-  </div>
-</section>
-
 <section class="cl">
   <div class="rv">
     <figure class="mem ck"><img src="images/photo-23.webp" width="540" height="900" loading="lazy" decoding="async" alt="Memorial portrait of Deaconess Josephine Oghenetega Oberiko" /></figure>
@@ -428,6 +423,7 @@ figure{margin:0;}
     <div class="rl"></div>
     <p>Rest in peace, dear Josephine.<br/>You are loved, you are cherished, and you are deeply missed.</p>
     <p class="md" style="margin-top:1.8rem">In loving memory &middot; made by her niece <b>Deborah Akpokighe</b></p>
+    <p class="md" style="margin-top:.6rem"><a href="remembrance.html" style="color:var(--gb)">Yearly remembrance messages</a></p>
     <p class="md" style="margin-top:.6rem">Music: <i>It Is Well with My Soul</i>, Philip P. Bliss (1876), setting by Peter Gerloff, public domain (CC0).</p>
   </div>
 </section>
@@ -525,33 +521,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
       :'28 June, her birthday. She would have been '+age+'.';
   }
   if(text){el.textContent=text;el.hidden=false;}
-})();
-
-/* Remembering: a note for each year, kept in the database so it can be added without touching the page. */
-(function(){
-  var CFG=window.MEMORIAL_TRIBUTES||{};
-  var box=document.getElementById('rnotes'),sec=document.getElementById('remembering');
-  if(!box||!sec||!CFG.url||!CFG.key)return;
-  var h={apikey:CFG.key};
-  if(CFG.key.indexOf('eyJ')===0)h.Authorization='Bearer '+CFG.key;
-  fetch(CFG.url+'/rest/v1/memorial_notes?select=year,title,body&order=year.desc&limit=60',{headers:h})
-    .then(function(r){return r.ok?r.json():[];})
-    .then(function(rows){
-      if(!Array.isArray(rows)||!rows.length)return;
-      rows.forEach(function(r){
-        var row=document.createElement('div');row.className='rn rv in';
-        var yr=document.createElement('div');yr.className='ry';yr.textContent=String(r.year);
-        var body=document.createElement('div');
-        if(r.title){var hd=document.createElement('h3');hd.textContent=r.title;body.appendChild(hd);}
-        String(r.body||'').split(String.fromCharCode(10)+String.fromCharCode(10)).forEach(function(par){
-          if(!par.trim())return;
-          var pe=document.createElement('p');pe.textContent=par.trim();body.appendChild(pe);
-        });
-        row.appendChild(yr);row.appendChild(body);box.appendChild(row);
-      });
-      sec.hidden=false;
-    })
-    .catch(function(){});
 })();
 </script>
 <script src="hymn-notes.js" defer></script>
